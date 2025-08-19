@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: rusttaskflow-backend
+    env: rust
+    rootDir: rusttaskflow-web
+    buildCommand: cargo build --release
+    startCommand: ./target/release/rusttaskflow-web
+    envVars:
+      - key: RUST_LOG
+        value: debug
+      - key: PORT
+        value: 10000
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CORS_ORIGIN
+        value: https://jimmyramsamynaick.github.io
+    
+  - type: pserv
+    name: rusttaskflow-db
+    env: postgresql
+    plan: free
+    databaseName: rusttaskflow
+    user: rusttaskflow_user
