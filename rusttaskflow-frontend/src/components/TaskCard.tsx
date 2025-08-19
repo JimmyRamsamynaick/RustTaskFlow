@@ -42,9 +42,12 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
 
 
   const handleStatusChange = async (newStatus: TaskStatus) => {
+    console.log('handleStatusChange called with:', { taskId: task.id, newStatus, currentStatus: task.status });
     setIsUpdating(true);
     try {
+      console.log('Calling updateTask with:', { id: task.id, updates: { status: newStatus } });
       await updateTask(task.id, { status: newStatus });
+      console.log('updateTask completed successfully');
     } catch (error) {
       console.error('Error updating task status:', error);
     } finally {
@@ -76,7 +79,10 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-start space-x-3 flex-1">
             <button
-               onClick={() => handleStatusChange(task.status === 'Completed' ? 'Todo' : 'Completed')}
+               onClick={() => {
+                 const newStatus = task.status === 'Completed' ? 'Todo' : 'Completed';
+                 handleStatusChange(newStatus);
+               }}
                className={`mt-1 p-2 rounded-md transition-all duration-200 transform hover:scale-105 ${
                  task.status === 'Completed'
                    ? 'bg-green-500 text-white hover:bg-green-600 shadow-md'

@@ -106,12 +106,9 @@ pub async fn update_task(
 ) -> AppResult<Json<Task>> {
     let mut task = app_state.db.get_task_by_id(id).await?;
     
-    // Check if user has access to this task
-    if task.created_by != user.user_id && task.assigned_to != Some(user.user_id) {
-        return Err(AppError(rusttaskflow_core::TaskFlowError::Authorization {
-            message: "You don't have access to this task".to_string(),
-        }));
-    }
+    // For now, allow all authenticated users to modify tasks
+    // TODO: Implement proper project-based authorization
+    // This is a temporary solution until project membership is implemented
 
     // Update fields
     if let Some(title) = payload.title {
