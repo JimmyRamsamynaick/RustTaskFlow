@@ -1,0 +1,66 @@
+# Dockerfile pour le déploiement en production du backend Rust
+FROM rust:1.75 as builder
+
+# Créer le répertoire de travail
+WORKDIR /app
+
+# Copier les fichiers de configuration Cargo
+COPY Cargo.toml Cargo.lock ./
+COPY rusttaskflow-core/Cargo.toml ./rusttaskflow-core/
+COPY rusttaskflow-web/Cargo.toml ./rusttaskflow-web/
+
+# Créer des répertoires src temporaires pour la compilation des dépendances
+RUN mkdir -p rusttaskflow-core/src rusttaskflow-web/src
+RUN echo "fn main() {}" > rusttaskflow-core/src/lib.rs
+RUN echo "fn main() {}" > rusttaskflow-web/src/main.rs
+
+# Compiler les dépendances (mise en cache)
+RUN cd rusttaskflow-web && cargo build --release
+RUN rm -rf rusttaskflow-core/src rusttaskflow-web/src
+
+# Copier le code source réel
+COPY rusttaskflow-core/src ./rusttaskflow-core/src
+COPY rusttaskflow-web/src ./rusttaskflow-web/src
+COPY rusttaskflow-web/migrations ./rusttaskflow-web/migrations
+
+# Compiler l'application
+RUN cd rusttaskflow-web && cargo build --release
+
+# Image de production
+FROM debian:bookworm-slim
+
+# Installer les dépendances système
+RUN apt-get update && apt-get install -y \
+    ca-certificates \
+    libssl3 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Créer un utilisateur non-root
+RUN useradd -m -u 1001 appuser
+
+# Créer le répertoire de travail
+WORKDIR /app
+
+# Copier l'exécutable depuis l'étape de build
+COPY --from=builder /app/target/release/rusttaskflow-web /app/rusttaskflow-web
+
+# Copier les migrations
+COPY --from=builder /app/rusttaskflow-web/migrations /app/migrations
+
+# Changer le propriétaire des fichiers
+RUN chown -R appuser:appuser /app
+
+# Utiliser l'utilisateur non-root
+USER appuser
+
+# Exposer le port
+EXPOSE 3000
+
+# Variables d'environnement par défaut
+ENV RUST_LOG=info
+ENV DATABASE_URL=postgresql://user:password@localhost/rusttaskflow
+ENV JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
+ENV CORS_ORIGIN=https://jimmyramsamynaick.github.io
+
+# Commande de démarrage
+CMD ["./rusttaskflow-web"]

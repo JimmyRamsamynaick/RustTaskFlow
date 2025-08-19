@@ -1,0 +1,17 @@
+[build]
+# Utiliser le Dockerfile de production pour le backend
+dockerfilePath = "rusttaskflow-web/Dockerfile.production"
+
+[deploy]
+# Port sur lequel l'application écoute
+startCommand = "./rusttaskflow-web"
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10
+
+# Variables d'environnement requises
+[env]
+RUST_LOG = "info"
+PORT = "3000"
+# DATABASE_URL sera fourni automatiquement par Railway PostgreSQL
+# JWT_SECRET doit être défini dans les variables d'environnement Railway
+# CORS_ORIGIN doit être défini pour autoriser GitHub Pages

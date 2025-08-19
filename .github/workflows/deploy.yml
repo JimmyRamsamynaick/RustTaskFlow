@@ -39,6 +39,8 @@ jobs:
           npm ci
           
       - name: Build
+        env:
+          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL || 'https://your-backend-url-here.com' }}
         run: |
           cd rusttaskflow-frontend
           npm run build
