@@ -1,0 +1,69 @@
+version: '3.8'
+
+services:
+  # Backend Rust API
+  backend:
+    build:
+      context: ./rusttaskflow-web
+      dockerfile: Dockerfile
+    container_name: rusttaskflow-backend
+    ports:
+      - "3000:3000"
+    environment:
+      - RUST_LOG=info
+      - DATABASE_URL=sqlite:///app/data/tasks.db
+      - JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
+      - CORS_ORIGIN=http://localhost
+    volumes:
+      - backend_data:/app/data
+    networks:
+      - rusttaskflow-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Frontend React
+  frontend:
+    build:
+      context: ./rusttaskflow-frontend
+      dockerfile: Dockerfile
+    container_name: rusttaskflow-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - rusttaskflow-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Base de données (optionnel - pour PostgreSQL)
+  # database:
+  #   image: postgres:15-alpine
+  #   container_name: rusttaskflow-db
+  #   environment:
+  #     POSTGRES_DB: rusttaskflow
+  #     POSTGRES_USER: rusttaskflow
+  #     POSTGRES_PASSWORD: password
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   networks:
+  #     - rusttaskflow-network
+  #   restart: unless-stopped
+
+volumes:
+  backend_data:
+    driver: local
+  # postgres_data:
+  #   driver: local
+
+networks:
+  rusttaskflow-network:
+    driver: bridge

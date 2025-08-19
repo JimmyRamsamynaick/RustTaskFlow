@@ -1,0 +1,20 @@
+[package]
+name = "rusttaskflow-core"
+version = "0.1.0"
+edition = "2021"
+authors = ["Jimmy Ramsamy-Naick"]
+description = "Core data structures and logic for RustTaskFlow"
+license = "MIT"
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+chrono = { workspace = true }
+uuid = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+sqlx = { workspace = true, optional = true }
+
+[features]
+default = []
+database = ["sqlx"]

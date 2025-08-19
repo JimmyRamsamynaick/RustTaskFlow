@@ -1,0 +1,50 @@
+# Fichiers Git
+.git
+.gitignore
+
+# Documentation
+README.md
+LICENSE
+
+# Fichiers de développement
+.env
+.env.local
+.env.example
+
+# Logs
+*.log
+logs/
+
+# Dossiers de build et cache
+target/
+node_modules/
+dist/
+build/
+.cache/
+
+# Fichiers temporaires
+*.tmp
+*.temp
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Base de données locale
+*.db
+*.sqlite
+*.sqlite3
+
+# Certificats et clés
+*.pem
+*.key
+*.crt
+
+# Docker
+Dockerfile*
+docker-compose*
+.dockerignore

@@ -1,0 +1,68 @@
+[package]
+name = "rusttaskflow-web"
+version = "0.1.0"
+edition = "2021"
+authors = ["Jimmy Ramsamy-Naick"]
+description = "API web collaborative pour RustTaskFlow"
+license = "MIT"
+
+[[bin]]
+name = "rusttaskflow-server"
+path = "src/main.rs"
+
+[dependencies]
+# Core library
+rusttaskflow-core = { path = "../rusttaskflow-core", features = ["database"] }
+
+# Web framework
+axum = { workspace = true, features = ["ws"] }
+tower = { workspace = true }
+tower-http = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+
+# Async runtime
+tokio = { workspace = true }
+
+# Database
+sqlx = { workspace = true }
+
+# Serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# Date and time
+chrono = { workspace = true }
+
+# UUID
+uuid = { workspace = true }
+
+# Error handling
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+
+# Authentication
+jsonwebtoken = { workspace = true }
+bcrypt = { workspace = true }
+
+# WebSocket
+axum-extra = { workspace = true }
+tokio-tungstenite = { workspace = true }
+futures = { workspace = true }
+
+# Environment variables
+dotenv = "0.15"
+
+# Static variables
+lazy_static = "1.4"
+
+# HTTP client for testing
+reqwest = { version = "0.11", features = ["json"], optional = true }
+
+[features]
+default = []
+testing = ["reqwest"]
+
+[dev-dependencies]
+reqwest = { version = "0.11", features = ["json"] }
+tokio-test = "0.4"
