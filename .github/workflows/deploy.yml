@@ -31,6 +31,11 @@ jobs:
         cd rusttaskflow-frontend
         npm run build
         
+    - name: Copy build to docs
+      run: |
+        rm -rf docs/*
+        cp -r rusttaskflow-frontend/dist/* docs/
+        
     - name: Setup Pages
       uses: actions/configure-pages@v4
       
