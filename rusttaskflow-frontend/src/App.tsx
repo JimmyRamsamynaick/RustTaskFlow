@@ -1,4 +1,3 @@
-import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { TaskProvider } from './contexts/TaskContext';
@@ -6,6 +5,7 @@ import { WebSocketProvider } from './contexts/WebSocketContext';
 import { Notifications, useNotifications } from './components/Notifications';
 import Header from './components/Header';
 import Dashboard from './pages/Dashboard';
+import Projects from './pages/Projects';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -14,17 +14,17 @@ import type { Task } from './types';
 function App() {
   const { notifications, addNotification, removeNotification } = useNotifications();
 
-  const handleTaskCreated = (task: Task, userId: string) => {
+  const handleTaskCreated = (task: Task) => {
     // Task creation will be handled by TaskContext
     console.log('Task created via WebSocket:', task);
   };
 
-  const handleTaskUpdated = (task: Task, userId: string) => {
+  const handleTaskUpdated = (task: Task) => {
     // Task update will be handled by TaskContext
     console.log('Task updated via WebSocket:', task);
   };
 
-  const handleTaskDeleted = (taskId: string, userId: string) => {
+  const handleTaskDeleted = (taskId: string) => {
     // Task deletion will be handled by TaskContext
     console.log('Task deleted via WebSocket:', taskId);
   };
@@ -54,6 +54,14 @@ function App() {
                     element={
                       <ProtectedRoute>
                         <Dashboard />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/projects"
+                    element={
+                      <ProtectedRoute>
+                        <Projects />
                       </ProtectedRoute>
                     }
                   />

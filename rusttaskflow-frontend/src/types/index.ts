@@ -59,3 +59,49 @@ export interface AuthResponse {
   token: string;
   user: User;
 }
+
+export interface Project {
+  id: string;
+  name: string;
+  description?: string;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+  members: ProjectMember[];
+  tasks: Task[];
+}
+
+export interface ProjectMember {
+  user_id: string;
+  username: string;
+  email: string;
+  role: ProjectRole;
+  joined_at: string;
+}
+
+export type ProjectRole = 'Owner' | 'Admin' | 'Member' | 'Viewer';
+
+export interface CreateProjectRequest {
+  name: string;
+  description?: string;
+}
+
+export interface InviteUserRequest {
+  project_id: string;
+  email: string;
+  role: ProjectRole;
+}
+
+export interface ProjectInvitation {
+  id: string;
+  project_id: string;
+  project_name: string;
+  invited_by: string;
+  invited_user_email: string;
+  role: ProjectRole;
+  status: InvitationStatus;
+  created_at: string;
+  expires_at: string;
+}
+
+export type InvitationStatus = 'Pending' | 'Accepted' | 'Declined' | 'Expired';

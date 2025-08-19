@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Calendar, Edit, Trash2, Clock, Check } from 'lucide-react';
+import { Calendar, Trash2, Clock, Check } from 'lucide-react';
 import type { Task, TaskStatus } from '../types';
 import { useTask } from '../contexts/TaskContext';
 
@@ -39,20 +39,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
     }
   };
 
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case 'Todo':
-        return 'À faire';
-      case 'InProgress':
-        return 'En cours';
-      case 'Completed':
-        return 'Terminé';
-      case 'Cancelled':
-        return 'Annulé';
-      default:
-        return status;
-    }
-  };
+
 
   const handleStatusChange = async (newStatus: TaskStatus) => {
     setIsUpdating(true);
@@ -90,16 +77,21 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
           <div className="flex items-start space-x-3 flex-1">
             <button
                onClick={() => handleStatusChange(task.status === 'Completed' ? 'Todo' : 'Completed')}
-               className={`mt-1 p-1 rounded transition-colors ${
+               className={`mt-1 p-2 rounded-md transition-all duration-200 transform hover:scale-105 ${
                  task.status === 'Completed'
-                   ? 'bg-green-500 text-white hover:bg-green-600'
-                   : 'border-2 border-gray-300 hover:border-green-500'
+                   ? 'bg-green-500 text-white hover:bg-green-600 shadow-md'
+                   : 'border-2 border-gray-300 hover:border-green-500 hover:bg-green-50'
                }`}
                title={task.status === 'Completed' ? 'Marquer comme non terminé' : 'Marquer comme terminé'}
+               disabled={isUpdating}
              >
-               {task.status === 'Completed' && <Check className="h-3 w-3" />}
+               {task.status === 'Completed' ? (
+                 <Check className="h-4 w-4" />
+               ) : (
+                 <div className="h-4 w-4" />
+               )}
              </button>
-             <h3 className={`font-medium flex-1 ${
+             <h3 className={`font-medium flex-1 transition-all duration-200 ${
                task.status === 'Completed' ? 'text-gray-500 line-through' : 'text-gray-900'
              }`}>
               {task.title}
@@ -137,16 +129,25 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
         </div>
 
         <div className="flex items-center justify-between">
-          <select
-            value={task.status}
-            onChange={(e) => handleStatusChange(e.target.value as TaskStatus)}
-            disabled={isUpdating}
-            className="text-xs border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-primary-500"
-          >
-            <option value="Todo">À faire</option>
-            <option value="InProgress">En cours</option>
-            <option value="Completed">Terminé</option>
-          </select>
+          <div className="flex items-center space-x-2">
+            <select
+              value={task.status}
+              onChange={(e) => handleStatusChange(e.target.value as TaskStatus)}
+              disabled={isUpdating}
+              className={`text-xs border rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${
+                task.status === 'Completed' ? 'bg-green-50 border-green-300' :
+                task.status === 'InProgress' ? 'bg-blue-50 border-blue-300' :
+                'bg-gray-50 border-gray-300'
+              }`}
+            >
+              <option value="Todo">📋 À faire</option>
+              <option value="InProgress">⚡ En cours</option>
+              <option value="Completed">✅ Terminé</option>
+            </select>
+            {isUpdating && (
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
+            )}
+          </div>
 
           <div className="flex items-center text-xs text-gray-400">
             <Clock className="h-3 w-3 mr-1" />

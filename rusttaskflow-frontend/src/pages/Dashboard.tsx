@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Plus, Search, Filter } from 'lucide-react';
+import { Plus, Search } from 'lucide-react';
 import { useTask } from '../contexts/TaskContext';
 import TaskForm from '../components/TaskForm';
+import TaskCard from '../components/TaskCard';
 import type { TaskStatus, TaskPriority } from '../types';
 
 const Dashboard: React.FC = () => {
@@ -20,11 +21,7 @@ const Dashboard: React.FC = () => {
     return matchesSearch && matchesStatus && matchesPriority;
   });
 
-  const tasksByStatus = {
-    todo: filteredTasks.filter(task => task.status === 'Todo'),
-    in_progress: filteredTasks.filter(task => task.status === 'InProgress'),
-    done: filteredTasks.filter(task => task.status === 'Completed'),
-  };
+
 
   if (isLoading) {
     return (
@@ -103,31 +100,12 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Task Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredTasks.map((task) => (
-          <div key={task.id} className="bg-white rounded-lg shadow-md p-6">
-            <h3 className="font-medium text-gray-900">{task.title}</h3>
-            <p className="text-gray-600 mt-2">{task.description}</p>
-            <div className="mt-4 flex items-center justify-between">
-              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                task.status === 'Todo' ? 'bg-gray-100 text-gray-800' :
-                task.status === 'InProgress' ? 'bg-blue-100 text-blue-800' :
-                task.status === 'Completed' ? 'bg-green-100 text-green-800' :
-                'bg-red-100 text-red-800'
-              }`}>
-                {task.status}
-              </span>
-              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                task.priority === 'Critical' ? 'bg-red-100 text-red-800' :
-                task.priority === 'High' ? 'bg-orange-100 text-orange-800' :
-                task.priority === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
-                'bg-green-100 text-green-800'
-              }`}>
-                {task.priority}
-              </span>
-            </div>
-          </div>
-        ))}
+      <div className="mt-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredTasks.map((task) => (
+            <TaskCard key={task.id} task={task} />
+          ))}
+        </div>
       </div>
 
       {/* Task Form Modal */}

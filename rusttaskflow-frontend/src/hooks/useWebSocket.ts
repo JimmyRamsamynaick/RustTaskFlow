@@ -152,7 +152,7 @@ export const useWebSocket = (options: UseWebSocketOptions = {}) => {
           const delay = Math.min(1000 * Math.pow(2, reconnectAttempts.current), 30000);
           console.log(`Attempting to reconnect in ${delay}ms (attempt ${reconnectAttempts.current + 1}/${maxReconnectAttempts})`);
           
-          reconnectTimeoutRef.current = setTimeout(() => {
+          reconnectTimeoutRef.current = window.setTimeout(() => {
             reconnectAttempts.current++;
             connect();
           }, delay);
