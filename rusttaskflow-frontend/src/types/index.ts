@@ -11,21 +11,27 @@ export interface Task {
   description?: string;
   status: TaskStatus;
   priority: TaskPriority;
+  tags: string[];
   due_date?: string;
+  assigned_to?: string;
+  created_by: string;
   created_at: string;
   updated_at: string;
-  user_id: string;
+  started_at?: string;
+  completed_at?: string;
 }
 
-export type TaskStatus = 'todo' | 'in_progress' | 'done';
+export type TaskStatus = 'Todo' | 'InProgress' | 'Completed' | 'Cancelled';
 
-export type TaskPriority = 'low' | 'medium' | 'high';
+export type TaskPriority = 'Low' | 'Medium' | 'High' | 'Critical';
 
 export interface CreateTaskRequest {
   title: string;
   description?: string;
   priority: TaskPriority;
+  tags: string[];
   due_date?: string;
+  assigned_to?: string;
 }
 
 export interface UpdateTaskRequest {
@@ -33,7 +39,9 @@ export interface UpdateTaskRequest {
   description?: string;
   status?: TaskStatus;
   priority?: TaskPriority;
+  tags?: string[];
   due_date?: string;
+  assigned_to?: string;
 }
 
 export interface LoginRequest {

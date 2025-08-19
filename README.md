@@ -227,8 +227,8 @@ Ce projet est sous licence MIT. Voir le fichier [LICENSE](LICENSE) pour plus de 
 ## 👨‍💻 Auteur
 
 **Votre Nom**
-- GitHub: [@votre-username](https://github.com/votre-username)
-- Email: votre.email@example.com
+- GitHub: [@JimmyRamsamynaick](https://github.com/JimmyRamsamynaick)
+- Email: jimmyramsamynaick@gmail.com
 
 ## 🙏 Remerciements
 

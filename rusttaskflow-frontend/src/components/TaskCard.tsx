@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Calendar, Edit, Trash2, Clock } from 'lucide-react';
 import type { Task, TaskStatus } from '../types';
 import { useTask } from '../contexts/TaskContext';
-import TaskForm from './TaskForm';
 
 interface TaskCardProps {
   task: Task;
@@ -10,16 +9,17 @@ interface TaskCardProps {
 
 const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
   const { updateTask, deleteTask } = useTask();
-  const [showEditForm, setShowEditForm] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'high':
+      case 'Critical':
         return 'bg-red-100 text-red-800 border-red-200';
-      case 'medium':
+      case 'High':
+        return 'bg-orange-100 text-orange-800 border-orange-200';
+      case 'Medium':
         return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'low':
+      case 'Low':
         return 'bg-green-100 text-green-800 border-green-200';
       default:
         return 'bg-gray-100 text-gray-800 border-gray-200';
@@ -87,12 +87,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
         <div className="flex items-start justify-between mb-3">
           <h3 className="font-medium text-gray-900 flex-1">{task.title}</h3>
           <div className="flex items-center space-x-1 ml-2">
-            <button
-              onClick={() => setShowEditForm(true)}
-              className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
-            >
-              <Edit className="h-4 w-4" />
-            </button>
+
             <button
               onClick={handleDelete}
               className="p-1 text-gray-400 hover:text-red-600 transition-colors"
@@ -142,13 +137,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
         </div>
       </div>
 
-      {showEditForm && (
-        <TaskForm
-          task={task}
-          onClose={() => setShowEditForm(false)}
-          onSuccess={() => setShowEditForm(false)}
-        />
-      )}
+
     </>
   );
 };

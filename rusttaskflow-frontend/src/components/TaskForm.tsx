@@ -17,7 +17,8 @@ const TaskForm: React.FC<TaskFormProps> = ({ task, onClose, onSuccess }) => {
   const [formData, setFormData] = useState({
     title: task?.title || '',
     description: task?.description || '',
-    priority: task?.priority || 'medium' as TaskPriority,
+    priority: task?.priority || 'Medium' as TaskPriority,
+    tags: task?.tags?.join(', ') || '',
     due_date: task?.due_date ? task.due_date.split('T')[0] : '',
   });
 
@@ -38,7 +39,8 @@ const TaskForm: React.FC<TaskFormProps> = ({ task, onClose, onSuccess }) => {
         title: formData.title,
         description: formData.description || undefined,
         priority: formData.priority,
-        due_date: formData.due_date || undefined,
+        tags: formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0),
+        due_date: formData.due_date ? new Date(formData.due_date).toISOString() : undefined,
       };
 
       if (task) {
@@ -121,10 +123,26 @@ const TaskForm: React.FC<TaskFormProps> = ({ task, onClose, onSuccess }) => {
               value={formData.priority}
               onChange={handleChange}
             >
-              <option value="low">Basse</option>
-              <option value="medium">Moyenne</option>
-              <option value="high">Haute</option>
+              <option value="Low">Basse</option>
+              <option value="Medium">Moyenne</option>
+              <option value="High">Haute</option>
+              <option value="Critical">Critique</option>
             </select>
+          </div>
+
+          <div>
+            <label htmlFor="tags" className="block text-sm font-medium text-gray-700 mb-1">
+              Tags
+            </label>
+            <input
+              id="tags"
+              name="tags"
+              type="text"
+              className="input-field"
+              placeholder="Séparez les tags par des virgules (ex: urgent, travail)"
+              value={formData.tags}
+              onChange={handleChange}
+            />
           </div>
 
           <div>
