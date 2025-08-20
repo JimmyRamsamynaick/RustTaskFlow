@@ -11,9 +11,14 @@ pub struct Database {
 impl Database {
     pub async fn new() -> anyhow::Result<Self> {
         let database_url = env::var("DATABASE_URL")
-            .expect("DATABASE_URL must be set for PostgreSQL connection");
+            .map_err(|e| anyhow::anyhow!("DATABASE_URL must be set for PostgreSQL connection: {:?}", e))?;
         
-        let pool = PgPool::connect(&database_url).await?;
+        tracing::info!("Connecting to PostgreSQL with URL: {}", 
+                      database_url.chars().take(20).collect::<String>() + "...");
+        
+        let pool = PgPool::connect(&database_url).await
+            .map_err(|e| anyhow::anyhow!("Failed to connect to PostgreSQL: {}", e))?;
+        
         Ok(Self { pool })
     }
 

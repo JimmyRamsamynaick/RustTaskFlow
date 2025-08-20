@@ -1,4 +1,11 @@
 services:
+  - type: pserv
+    name: rusttaskflow-db
+    env: postgresql
+    plan: free
+    databaseName: rusttaskflow
+    user: rusttaskflow_user
+
   - type: web
     name: rusttaskflow-backend
     env: rust
@@ -18,10 +25,3 @@ services:
         fromDatabase:
           name: rusttaskflow-db
           property: connectionString
-    
-  - type: pserv
-    name: rusttaskflow-db
-    env: postgresql
-    plan: free
-    databaseName: rusttaskflow
-    user: rusttaskflow_user
