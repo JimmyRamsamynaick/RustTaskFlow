@@ -24,8 +24,8 @@ tracing-subscriber = { workspace = true }
 # Async runtime
 tokio = { workspace = true }
 
-# Database
-sqlx = { workspace = true }
+# Database - PostgreSQL pour le web
+sqlx = { workspace = true, features = ["postgres"] }
 
 # Serialization
 serde = { workspace = true }

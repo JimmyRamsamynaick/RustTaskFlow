@@ -1,19 +1,19 @@
 use rusttaskflow_core::{Task, User, TaskFilter, Result, TaskFlowError};
-use sqlx::{SqlitePool, Row};
+use sqlx::{PgPool, Row};
 use std::env;
 use uuid::Uuid;
 
 #[derive(Clone)]
 pub struct Database {
-    pool: SqlitePool,
+    pool: PgPool,
 }
 
 impl Database {
     pub async fn new() -> anyhow::Result<Self> {
         let database_url = env::var("DATABASE_URL")
-            .unwrap_or_else(|_| "sqlite:rusttaskflow.db".to_string());
+            .expect("DATABASE_URL must be set for PostgreSQL connection");
         
-        let pool = SqlitePool::connect(&database_url).await?;
+        let pool = PgPool::connect(&database_url).await?;
         Ok(Self { pool })
     }
 
@@ -25,7 +25,7 @@ impl Database {
     // User operations
     pub async fn create_user(&self, user: &User) -> Result<()> {
         sqlx::query("INSERT INTO users (id, username, email, password_hash, created_at, updated_at, is_active) VALUES ($1, $2, $3, $4, $5, $6, $7)")
-            .bind(user.id)
+            .bind(user.id.to_string())
             .bind(&user.username)
             .bind(&user.email)
             .bind(&user.password_hash)
@@ -41,14 +41,14 @@ impl Database {
 
     pub async fn get_user_by_id(&self, id: Uuid) -> Result<User> {
         let row = sqlx::query("SELECT * FROM users WHERE id = $1")
-            .bind(id)
+            .bind(id.to_string())
             .fetch_optional(&self.pool)
             .await
             .map_err(TaskFlowError::Database)?;
 
         match row {
             Some(row) => Ok(User {
-                id: row.get("id"),
+                id: Uuid::parse_str(row.get("id")).map_err(|e| TaskFlowError::Internal(anyhow::anyhow!("Invalid UUID: {}", e)))?,
                 username: row.get("username"),
                 email: row.get("email"),
                 password_hash: row.get("password_hash"),
@@ -69,7 +69,7 @@ impl Database {
 
         match row {
             Some(row) => Ok(User {
-                id: row.get("id"),
+                id: Uuid::parse_str(row.get("id")).map_err(|e| TaskFlowError::Internal(anyhow::anyhow!("Invalid UUID: {}", e)))?,
                 username: row.get("username"),
                 email: row.get("email"),
                 password_hash: row.get("password_hash"),
@@ -89,16 +89,18 @@ impl Database {
 
         let users = rows
             .into_iter()
-            .map(|row| User {
-                id: row.get("id"),
-                username: row.get("username"),
-                email: row.get("email"),
-                password_hash: row.get("password_hash"),
-                created_at: row.get("created_at"),
-                updated_at: row.get("updated_at"),
-                is_active: row.get("is_active"),
+            .map(|row| -> Result<User> {
+                Ok(User {
+                    id: Uuid::parse_str(row.get("id")).map_err(|e| TaskFlowError::Internal(anyhow::anyhow!("Invalid UUID: {}", e)))?,
+                    username: row.get("username"),
+                    email: row.get("email"),
+                    password_hash: row.get("password_hash"),
+                    created_at: row.get("created_at"),
+                    updated_at: row.get("updated_at"),
+                    is_active: row.get("is_active"),
+                })
             })
-            .collect();
+            .collect::<Result<Vec<_>>>()?;
 
         Ok(users)
     }
@@ -115,7 +117,7 @@ impl Database {
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
             "#
         )
-        .bind(task.id)
+        .bind(task.id.to_string())
         .bind(&task.title)
         .bind(&task.description)
         .bind(serde_json::to_string(&task.status).map_err(TaskFlowError::Serialization)?)
@@ -126,8 +128,8 @@ impl Database {
         .bind(task.started_at)
         .bind(task.completed_at)
         .bind(task.due_date)
-        .bind(task.assigned_to)
-        .bind(task.created_by)
+        .bind(task.assigned_to.map(|id| id.to_string()))
+        .bind(task.created_by.to_string())
         .execute(&self.pool)
         .await
         .map_err(TaskFlowError::Database)?;
@@ -137,14 +139,14 @@ impl Database {
 
     pub async fn get_task_by_id(&self, id: Uuid) -> Result<Task> {
         let row = sqlx::query("SELECT * FROM tasks WHERE id = $1")
-            .bind(id)
+            .bind(id.to_string())
             .fetch_optional(&self.pool)
             .await
             .map_err(TaskFlowError::Database)?;
 
         match row {
             Some(row) => Ok(Task {
-                id: row.get("id"),
+                id: Uuid::parse_str(row.get("id")).map_err(|e| TaskFlowError::Internal(anyhow::anyhow!("Invalid UUID: {}", e)))?,
                 title: row.get("title"),
                 description: row.get("description"),
                 status: serde_json::from_str(&row.get::<String, _>("status")).map_err(TaskFlowError::Serialization)?,
@@ -155,8 +157,8 @@ impl Database {
                 started_at: row.get("started_at"),
                 completed_at: row.get("completed_at"),
                 due_date: row.get("due_date"),
-                assigned_to: row.get("assigned_to"),
-                created_by: row.get("created_by"),
+                assigned_to: row.get::<Option<String>, _>("assigned_to").map(|s| Uuid::parse_str(&s).ok()).flatten(),
+                created_by: Uuid::parse_str(row.get("created_by")).map_err(|e| TaskFlowError::Internal(anyhow::anyhow!("Invalid UUID: {}", e)))?,
             }),
             None => Err(TaskFlowError::TaskNotFound { id: id.to_string() }),
         }
@@ -172,7 +174,7 @@ impl Database {
             WHERE id = $1
             "#
         )
-        .bind(task.id)
+        .bind(task.id.to_string())
         .bind(&task.title)
         .bind(&task.description)
         .bind(serde_json::to_string(&task.status).map_err(TaskFlowError::Serialization)?)
@@ -182,7 +184,7 @@ impl Database {
         .bind(task.started_at)
         .bind(task.completed_at)
         .bind(task.due_date)
-        .bind(task.assigned_to)
+        .bind(task.assigned_to.map(|id| id.to_string()))
         .execute(&self.pool)
         .await
         .map_err(TaskFlowError::Database)?;
@@ -192,7 +194,7 @@ impl Database {
 
     pub async fn delete_task(&self, id: Uuid) -> Result<()> {
         let result = sqlx::query("DELETE FROM tasks WHERE id = $1")
-            .bind(id)
+            .bind(id.to_string())
             .execute(&self.pool)
             .await
             .map_err(TaskFlowError::Database)?;
@@ -206,39 +208,33 @@ impl Database {
 
     pub async fn list_tasks(&self, filter: Option<TaskFilter>) -> Result<Vec<Task>> {
         let mut query = "SELECT * FROM tasks WHERE 1=1".to_string();
-        let mut params: Vec<Box<dyn sqlx::Encode<'_, sqlx::Sqlite> + Send + Sync>> = Vec::new();
-        let mut param_count = 0;
+        let mut bind_count = 0;
 
         if let Some(filter) = filter {
-            if let Some(status) = filter.status {
-                param_count += 1;
-                query.push_str(&format!(" AND status = ${}", param_count));
-                params.push(Box::new(serde_json::to_string(&status).unwrap()));
+            if filter.status.is_some() {
+                bind_count += 1;
+                query.push_str(&format!(" AND status = ${}", bind_count));
             }
             
-            if let Some(priority) = filter.priority {
-                param_count += 1;
-                query.push_str(&format!(" AND priority = ${}", param_count));
-                params.push(Box::new(serde_json::to_string(&priority).unwrap()));
+            if filter.priority.is_some() {
+                bind_count += 1;
+                query.push_str(&format!(" AND priority = ${}", bind_count));
             }
             
-            if let Some(assigned_to) = filter.assigned_to {
-                param_count += 1;
-                query.push_str(&format!(" AND assigned_to = ${}", param_count));
-                params.push(Box::new(assigned_to));
+            if filter.assigned_to.is_some() {
+                bind_count += 1;
+                query.push_str(&format!(" AND assigned_to = ${}", bind_count));
             }
             
-            if let Some(created_by) = filter.created_by {
-                param_count += 1;
-                query.push_str(&format!(" AND created_by = ${}", param_count));
-                params.push(Box::new(created_by));
+            if filter.created_by.is_some() {
+                bind_count += 1;
+                query.push_str(&format!(" AND created_by = ${}", bind_count));
             }
         }
 
         query.push_str(" ORDER BY created_at DESC");
 
-        // For simplicity, we'll use a basic query without dynamic parameters
-        // In a production app, you'd want to use a query builder
+        // Pour simplifier, on utilise une requête basique pour l'instant
         let rows = sqlx::query("SELECT * FROM tasks ORDER BY created_at DESC")
             .fetch_all(&self.pool)
             .await
@@ -248,7 +244,7 @@ impl Database {
             .into_iter()
             .map(|row| -> Result<Task> {
                 Ok(Task {
-                    id: row.get("id"),
+                    id: Uuid::parse_str(row.get("id")).map_err(|e| TaskFlowError::Internal(anyhow::anyhow!("Invalid UUID: {}", e)))?,
                     title: row.get("title"),
                     description: row.get("description"),
                     status: serde_json::from_str(&row.get::<String, _>("status")).map_err(TaskFlowError::Serialization)?,
@@ -259,8 +255,8 @@ impl Database {
                     started_at: row.get("started_at"),
                     completed_at: row.get("completed_at"),
                     due_date: row.get("due_date"),
-                    assigned_to: row.get("assigned_to"),
-                    created_by: row.get("created_by"),
+                    assigned_to: row.get::<Option<String>, _>("assigned_to").map(|s| Uuid::parse_str(&s).ok()).flatten(),
+                    created_by: Uuid::parse_str(row.get("created_by")).map_err(|e| TaskFlowError::Internal(anyhow::anyhow!("Invalid UUID: {}", e)))?,
                 })
             })
             .collect::<Result<Vec<_>>>()?;

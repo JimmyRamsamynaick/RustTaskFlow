@@ -54,8 +54,14 @@ async fn main() -> anyhow::Result<()> {
     // Build our application with routes
     let app = create_app(database).await;
 
-    // Run it with hyper on localhost:3000
-    let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
+    // Get port from environment variable (Render uses PORT)
+    let port = std::env::var("PORT")
+        .unwrap_or_else(|_| "3000".to_string())
+        .parse::<u16>()
+        .unwrap_or(3000);
+
+    // Bind to 0.0.0.0 for Render deployment
+    let addr = SocketAddr::from(([0, 0, 0, 0], port));
     tracing::info!("Server starting on {}", addr);
     
     let listener = tokio::net::TcpListener::bind(addr).await?;
@@ -77,11 +83,21 @@ async fn create_app(database: Database) -> Router {
         websocket_tx,
     };
 
-    // CORS layer
-    let cors = CorsLayer::new()
-        .allow_origin(Any)
-        .allow_methods(Any)
-        .allow_headers(Any);
+    // CORS layer - Use specific origin in production
+    let cors_origin = std::env::var("CORS_ORIGIN")
+        .unwrap_or_else(|_| "*".to_string());
+    
+    let cors = if cors_origin == "*" {
+        CorsLayer::new()
+            .allow_origin(Any)
+            .allow_methods(Any)
+            .allow_headers(Any)
+    } else {
+        CorsLayer::new()
+            .allow_origin(cors_origin.parse::<axum::http::HeaderValue>().unwrap())
+            .allow_methods(Any)
+            .allow_headers(Any)
+    };
 
     // Build our application with routes
     Router::new()
