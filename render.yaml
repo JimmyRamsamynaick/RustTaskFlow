@@ -1,6 +1,7 @@
 services:
   - type: web
     name: rusttaskflow-backend
+    env: rust
     rootDir: rusttaskflow-web
     buildCommand: cargo build --release --bin rusttaskflow-server
     startCommand: ./target/release/rusttaskflow-server
