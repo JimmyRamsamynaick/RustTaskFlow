@@ -40,10 +40,11 @@ jobs:
           
       - name: Build
         env:
-          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL || 'https://your-backend-url-here.com' }}
+          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL || 'https://rusttaskflow-backend.onrender.com' }}
+          NODE_ENV: production
         run: |
           cd rusttaskflow-frontend
-          npm run build
+          npm run build -- --mode production
           
       - name: Setup Pages
         uses: actions/configure-pages@v4
