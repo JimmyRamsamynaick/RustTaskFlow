@@ -3,8 +3,8 @@ services:
     name: rusttaskflow-backend
     env: rust
     rootDir: rusttaskflow-web
-    buildCommand: cargo build --release
-    startCommand: ./target/release/rusttaskflow-web
+    buildCommand: cargo build --release --bin rusttaskflow-server
+    startCommand: ./target/release/rusttaskflow-server
     envVars:
       - key: RUST_LOG
         value: debug
